@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
+using calorieCounter_backend.Data;
 using calorieCounter_backend.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
