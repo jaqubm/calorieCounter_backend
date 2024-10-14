@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace calorieCounter_backend.Models;
 
-[Table("Users", Schema = "calorieCounter")]
 public class User
 {
     [Key]
