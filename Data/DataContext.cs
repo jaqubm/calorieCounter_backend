@@ -13,7 +13,7 @@ public class DataContext(IConfiguration config) : DbContext
         if (optionsBuilder.IsConfigured) return;
         
         // Setting up connection with DB
-        optionsBuilder.UseSqlServer(config.GetConnectionString("TestSQL"),
+        optionsBuilder.UseSqlServer(config.GetConnectionString("AzureSQL"),
             o =>
             {
                 o.EnableRetryOnFailure();
@@ -27,6 +27,6 @@ public class DataContext(IConfiguration config) : DbContext
         
         // Connecting Entities with DB
         modelBuilder.Entity<User>()
-            .HasKey(u => u.Id);
+            .HasKey(u => u.Email);
     }
 }

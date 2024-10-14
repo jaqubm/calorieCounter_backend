@@ -1,3 +1,4 @@
+using calorieCounter_backend.Helpers;
 using calorieCounter_backend.Models;
 using calorieCounter_backend.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -6,50 +7,55 @@ namespace calorieCounter_backend.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class UserController(IUserRepository _userRepository) : ControllerBase
+public class UserController(IUserRepository userRepository) : ControllerBase
 {
-    [HttpPost("add")]
-    public IActionResult AddUser([FromBody] User newUser)
+    [HttpPost("SignIn")]
+    public async Task<IActionResult> SignIn([FromBody] string accessToken)
     {
-        if (newUser == null || string.IsNullOrEmpty(newUser.Email) || string.IsNullOrEmpty(newUser.Name))
-        {
-            return BadRequest("Invalid user data.");
-        }
+        if (string.IsNullOrEmpty(accessToken))
+            return Unauthorized("Access token is required.");
 
-        _userRepository.AddEntity(newUser);
+        try
+        {
+            var user = await AuthHelper.GetUserFromGoogleToken(accessToken);
 
-        if (_userRepository.SaveChanges())
-        {
-            return Ok("User created successfully.");
+            if (userRepository.UserAlreadyExist(user.Email)) return Ok();
+
+            userRepository.AddEntity(user);
+
+            return userRepository.SaveChanges() ? Ok() : Unauthorized("Failed to add user to database.");
         }
-        else
+        catch (Exception e)
         {
-            return StatusCode(500, "An error occurred while saving the user.");
+            return Unauthorized(e.Message);
         }
     }
 
-    [HttpPut("update/{id}")]
-    public IActionResult UpdateUser(int id, [FromBody] User updatedUser)
+    [HttpPost("UpdateUser")]
+    public async Task<IActionResult> UpdateUser([FromBody] string accessToken)
     {
-        if (updatedUser == null || string.IsNullOrEmpty(updatedUser.Email) || string.IsNullOrEmpty(updatedUser.Name))
-        {
-            return BadRequest("Invalid user data. Email and Name are required.");
-        }
+        if (string.IsNullOrEmpty(accessToken))
+            return Unauthorized("Access token is required.");
 
-        if (id != updatedUser.Id)
+        try
         {
-            return BadRequest("User ID mismatch.");
-        }
+            var updatedUser = await AuthHelper.GetUserFromGoogleToken(accessToken);
 
-        _userRepository.UpdateEntity(updatedUser);
+            var existingUser = userRepository.GetUserByEmail(updatedUser.Email);
 
-        if (_userRepository.SaveChanges())
-        {
-            return Ok("User updated successfully.");
+            if (existingUser == null)
+                return NotFound("User not found.");
+
+            existingUser.Name = updatedUser.Name;
+
+            userRepository.UpdateEntity(existingUser);
+
+            return userRepository.SaveChanges() ? Ok("User updated successfully.") : BadRequest("Failed to update user.");
         }
-        else
+        catch (Exception e)
         {
-            return StatusCode(500, "An error occurred while updating the user.");
+            return Unauthorized(e.Message);
         }
     }
+
 }
