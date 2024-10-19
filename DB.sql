@@ -1,21 +1,11 @@
--- DB HERE
-
-CREATE DATABASE DotNetCourseDatabase;
-GO
-
-USE DotNetCourseDatabase;
-GO
-
 CREATE SCHEMA calorieCounter;
-GO
+
 
 CREATE TABLE calorieCounter.[User]
 (
-    Email NVARCHAR(255) NOT NULL PRIMARY KEY,   -- Corresponds to 'Email' property
-    Name NVARCHAR(255) NOT NULL,                -- Corresponds to 'Name' property
+    Email NVARCHAR(255) NOT NULL PRIMARY KEY,
+    Name NVARCHAR(255) NOT NULL,
 );
-GO
-
 
 CREATE TABLE calorieCounter.[Product] (
     Id INT PRIMARY KEY IDENTITY(1,1),
@@ -28,8 +18,6 @@ CREATE TABLE calorieCounter.[Product] (
     OwnerEmail NVARCHAR(255),
     FOREIGN KEY (OwnerEmail) REFERENCES calorieCounter.[User](Email) ON DELETE CASCADE
 );
-GO
-
 
 CREATE TABLE calorieCounter.[Recipe] (
     Id INT PRIMARY KEY IDENTITY(1,1),
@@ -38,8 +26,6 @@ CREATE TABLE calorieCounter.[Recipe] (
     OwnerEmail NVARCHAR(255),
     FOREIGN KEY (OwnerEmail) REFERENCES calorieCounter.[User](Email) ON DELETE CASCADE
 );
-GO
-
 
 CREATE TABLE calorieCounter.[RecipeProduct] (
     RecipeId INT NOT NULL,
@@ -49,8 +35,6 @@ CREATE TABLE calorieCounter.[RecipeProduct] (
     FOREIGN KEY (RecipeId) REFERENCES calorieCounter.[Recipe](Id) ON DELETE CASCADE,
     FOREIGN KEY (ProductId) REFERENCES calorieCounter.[Product](Id) ON DELETE NO ACTION 
 );
-GO
-
 
 CREATE TABLE calorieCounter.[UserEntry] (
     Id INT PRIMARY KEY IDENTITY(1,1),
@@ -65,4 +49,10 @@ CREATE TABLE calorieCounter.[UserEntry] (
     FOREIGN KEY (ProductId) REFERENCES calorieCounter.[Product](Id) ON DELETE NO ACTION,
     FOREIGN KEY (RecipeId) REFERENCES calorieCounter.[Recipe](Id) ON DELETE NO ACTION
 );
-GO
+
+
+DROP TABLE calorieCounter.[User];
+DROP TABLE calorieCounter.[Product];
+DROP TABLE calorieCounter.[Recipe];
+DROP TABLE calorieCounter.[RecipeProduct];
+DROP TABLE calorieCounter.[UserEntry];
