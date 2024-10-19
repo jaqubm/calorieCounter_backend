@@ -20,4 +20,12 @@ public class ApiController(IConfiguration config) : ControllerBase
             { "databaseConnectionStatus", databaseConnectionStatus ? "OK" : "Failed" }
         });
     }
+    
+    [HttpGet("WakeUpDatabase")]
+    public async Task<ActionResult> GetWakeUpDatabase()
+    {
+        var databaseWakeUpConnectAsync = await _entityFramework.Database.CanConnectAsync();
+        
+        return Ok(databaseWakeUpConnectAsync);
+    }
 }
