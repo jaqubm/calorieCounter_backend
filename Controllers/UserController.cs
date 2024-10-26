@@ -1,5 +1,4 @@
 using calorieCounter_backend.Helpers;
-using calorieCounter_backend.Models;
 using calorieCounter_backend.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +9,7 @@ namespace calorieCounter_backend.Controllers;
 public class UserController(IUserRepository userRepository) : ControllerBase
 {
     [HttpPost("SignIn")]
-    public async Task<IActionResult> SignIn([FromBody] string accessToken)
+    public async Task<ActionResult> SignIn([FromBody] string accessToken)
     {
         if (string.IsNullOrEmpty(accessToken))
             return Unauthorized("Access token is required.");
@@ -32,7 +31,7 @@ public class UserController(IUserRepository userRepository) : ControllerBase
     }
 
     [HttpPost("UpdateUser")]
-    public async Task<IActionResult> UpdateUser([FromBody] string accessToken)
+    public async Task<ActionResult> UpdateUser([FromBody] string accessToken)
     {
         if (string.IsNullOrEmpty(accessToken))
             return Unauthorized("Access token is required.");
