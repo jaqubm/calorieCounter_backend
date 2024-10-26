@@ -25,6 +25,12 @@ public class UserRepository(IConfiguration config) : IUserRepository
             _entityFramework.Update(entity);
     }
 
+    public void DeleteEntity<T>(T entity)
+    {
+        if (entity is not null)
+            _entityFramework.Remove(entity);
+    }
+
     public bool UserAlreadyExist(string email)
     {
         return _entityFramework.User.Any(u => u.Email == email);

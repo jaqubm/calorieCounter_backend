@@ -4,10 +4,12 @@ namespace calorieCounter_backend.Models;
 
 public class RecipeProduct
 {
-    public int RecipeId { get; set; }
+    [MaxLength(50)]
+    public string RecipeId { get; set; }
     public virtual Recipe Recipe { get; set; }
 
-    public int ProductId { get; set; }
+    [MaxLength(50)]
+    public string ProductId { get; set; }
     public virtual Product Product { get; set; }
 
     [Required]
@@ -18,7 +20,7 @@ public class RecipeProduct
         Weight = 0;
     }
 
-    public RecipeProduct(int recipeId, int productId, float weight)
+    public RecipeProduct(string recipeId, string productId, float weight)
     {
         RecipeId = recipeId;
         ProductId = productId;

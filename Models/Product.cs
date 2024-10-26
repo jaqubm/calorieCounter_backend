@@ -6,7 +6,8 @@ namespace calorieCounter_backend.Models;
 public class Product
 {
     [Key]
-    public int Id { get; set; }
+    [MaxLength(50)]
+    public string Id { get; set; }
 
     [Required]
     [MaxLength(100)]
@@ -34,6 +35,7 @@ public class Product
     
     public Product()
     {
+        Id = Guid.NewGuid().ToString();
         Name = "";
         ValuesPer = 0;
         Energy = 0;
@@ -44,6 +46,7 @@ public class Product
 
     public Product(string name, float valuesPer, float energy, float protein, float carbohydrates, float fat, string? ownerEmail)
     {
+        Id = Guid.NewGuid().ToString();
         Name = name;
         ValuesPer = valuesPer;
         Energy = energy;

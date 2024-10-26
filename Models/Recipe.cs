@@ -6,7 +6,8 @@ namespace calorieCounter_backend.Models;
 public class Recipe
 {
     [Key]
-    public int Id { get; set; }
+    [MaxLength(50)]
+    public string Id { get; set; }
 
     [Required]
     [MaxLength(100)]
@@ -24,6 +25,7 @@ public class Recipe
     
     public Recipe()
     {
+        Id = Guid.NewGuid().ToString();
         Name = "";
         Instructions = "";
         OwnerEmail = "";
@@ -31,6 +33,7 @@ public class Recipe
 
     public Recipe(string name, string instructions, string? ownerEmail)
     {
+        Id = Guid.NewGuid().ToString();
         Name = name;
         Instructions = instructions;
         OwnerEmail = ownerEmail;
