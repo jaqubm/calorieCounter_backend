@@ -1,7 +1,5 @@
 using System.Text.Json.Serialization;
-using calorieCounter_backend.Data;
 using calorieCounter_backend.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +38,7 @@ builder.Services.AddCors(options =>
 
 // Adding scoped connection between Repositories Interfaces and Repositories Classes
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 var app = builder.Build();
 

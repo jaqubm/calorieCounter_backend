@@ -1,13 +1,12 @@
 using calorieCounter_backend.Data;
 using calorieCounter_backend.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace calorieCounter_backend.Repositories;
 
-public class UserRepository(IConfiguration config) : IUserRepository
+public class ProductRepository(IConfiguration config) : IProductRepository
 {
     private readonly DataContext _entityFramework = new(config);
-    
+
     public bool SaveChanges()
     {
         return _entityFramework.SaveChanges() > 0;
@@ -31,13 +30,10 @@ public class UserRepository(IConfiguration config) : IUserRepository
             _entityFramework.Remove(entity);
     }
 
-    public bool UserAlreadyExist(string email)
+    public Product? GetProductById(string id)
     {
-        return _entityFramework.User.Any(u => u.Email == email);
-    }
-
-    public User? GetUserByEmail(string email)
-    {
-        return _entityFramework.User.FirstOrDefault(u => u.Email == email);
+        return _entityFramework
+            .Product
+            .FirstOrDefault(p => p.Id == id);
     }
 }

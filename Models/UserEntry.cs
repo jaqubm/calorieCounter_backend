@@ -6,7 +6,8 @@ namespace calorieCounter_backend.Models;
 public class UserEntry
 {
     [Key]
-    public int Id { get; set; }
+    [MaxLength(50)]
+    public string Id { get; set; }
 
     [Required]
     [MaxLength(255)]
@@ -18,10 +19,12 @@ public class UserEntry
     [MaxLength(10)]
     public string EntryType { get; set; }
 
-    public int? ProductId { get; set; }
+    [MaxLength(50)]
+    public string? ProductId { get; set; }
     public virtual Product? Product { get; set; }
 
-    public int? RecipeId { get; set; }
+    [MaxLength(50)]
+    public string? RecipeId { get; set; }
     public virtual Recipe? Recipe { get; set; }
 
     [Required]
@@ -35,14 +38,16 @@ public class UserEntry
     
     public UserEntry()
     {
+        Id = Guid.NewGuid().ToString();
         UserEmail = "";
         EntryType = "";
         Date = DateTime.Now;
         MealType = "";
     }
 
-    public UserEntry(string userEmail, string entryType, DateTime date, string mealType, int? productId = null, int? recipeId = null, float? weight = null)
+    public UserEntry(string userEmail, string entryType, DateTime date, string mealType, string? productId = null, string? recipeId = null, float? weight = null)
     {
+        Id = Guid.NewGuid().ToString();
         UserEmail = userEmail;
         EntryType = entryType;
         Date = date;
