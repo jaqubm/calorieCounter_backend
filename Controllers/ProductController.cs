@@ -73,6 +73,14 @@ public class ProductController(IProductRepository productRepository, IUserReposi
         
         return Ok(productDb);
     }
+    
+    [HttpGet("GetList")]
+    public ActionResult<List<Product>> GetListOfProducts()
+    {
+        var listOfProductsDb = productRepository.GetProductsByName(string.Empty);
+        
+        return Ok(listOfProductsDb);
+    }
 
     [HttpGet("Search/{productName}")]
     public ActionResult<List<Product>> SearchForProduct([FromRoute] string productName)
