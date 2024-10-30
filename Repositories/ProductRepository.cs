@@ -36,4 +36,14 @@ public class ProductRepository(IConfiguration config) : IProductRepository
             .Product
             .FirstOrDefault(p => p.Id == id);
     }
+
+    public List<Product> GetProductsByName(string name)
+    {
+        var queryable = _entityFramework.Product.AsQueryable();
+        
+        if (!string.IsNullOrEmpty(name))
+            queryable = queryable.Where(p => p.Name.StartsWith(name));
+        
+        return queryable.Take(30).ToList();
+    }
 }
