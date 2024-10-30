@@ -74,6 +74,14 @@ public class ProductController(IProductRepository productRepository, IUserReposi
         return Ok(productDb);
     }
 
+    [HttpGet("Search/{productName}")]
+    public ActionResult<List<Product>> SearchForProduct([FromRoute] string productName)
+    {
+        var listOfProductsDb = productRepository.GetProductsByName(productName);
+        
+        return Ok(listOfProductsDb);
+    }
+
     [HttpDelete("Delete/{productId}")]
     public ActionResult DeleteProduct([FromRoute] string productId)
     {

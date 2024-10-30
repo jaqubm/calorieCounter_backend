@@ -11,4 +11,5 @@ public interface IProductRepository
     public void DeleteEntity<T>(T entity);
     
     public Product? GetProductById(string id);
+    public List<Product> GetProductsByName(string name);
 }
