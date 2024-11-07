@@ -30,13 +30,16 @@ public class Product
 
     [MaxLength(255)]
     [ForeignKey("Owner")]
-    public string? OwnerEmail { get; set; }
+    public string? OwnerId { get; set; }
     public virtual User? Owner { get; set; }
+
+    public virtual List<UserEntry> UserEntries { get; set; } = [];
+    public virtual List<RecipeProduct> RecipeProducts { get; set; } = [];
     
     public Product()
     {
         Id = Guid.NewGuid().ToString();
-        Name = "";
+        Name = string.Empty;
         ValuesPer = 0;
         Energy = 0;
         Protein = 0;
@@ -44,7 +47,7 @@ public class Product
         Fat = 0;
     }
 
-    public Product(string name, float valuesPer, float energy, float protein, float carbohydrates, float fat, string? ownerEmail)
+    public Product(string name, float valuesPer, float energy, float protein, float carbohydrates, float fat, string? ownerId)
     {
         Id = Guid.NewGuid().ToString();
         Name = name;
@@ -53,6 +56,6 @@ public class Product
         Protein = protein;
         Carbohydrates = carbohydrates;
         Fat = fat;
-        OwnerEmail = ownerEmail;
+        OwnerId = ownerId;
     }
 }

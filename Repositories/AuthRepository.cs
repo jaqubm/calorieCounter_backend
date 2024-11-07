@@ -1,10 +1,8 @@
 using calorieCounter_backend.Data;
-using calorieCounter_backend.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace calorieCounter_backend.Repositories;
 
-public class UserRepository(IConfiguration config) : IUserRepository
+public class AuthRepository(IConfiguration config) : IAuthRepository
 {
     private readonly DataContext _entityFramework = new(config);
     
@@ -12,17 +10,19 @@ public class UserRepository(IConfiguration config) : IUserRepository
     {
         return await _entityFramework.SaveChangesAsync() > 0;
     }
-
-    public void UpdateEntity<T>(T entity)
+    
+    public async Task AddEntityAsync<T>(T entity)
     {
         if (entity is not null)
-            _entityFramework.Update(entity);
+            await _entityFramework.AddAsync(entity);
     }
 
-    public async Task<User?> GetUserByIdAsync(string userId)
+    public async Task<bool> CheckIfUserExistsByIdAsync(string userId)
     {
-        return await _entityFramework
+        var userDb = await _entityFramework
             .User
             .FindAsync(userId);
+
+        return userDb is not null;
     }
 }

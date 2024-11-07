@@ -1,60 +1,51 @@
+using AutoMapper;
+using calorieCounter_backend.Dtos;
 using calorieCounter_backend.Helpers;
+using calorieCounter_backend.Models;
 using calorieCounter_backend.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace calorieCounter_backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class UserController(IUserRepository userRepository) : ControllerBase
 {
-    [HttpPost("SignIn")]
-    public async Task<ActionResult> SignIn([FromBody] string accessToken)
+    private readonly Mapper _mapper = new(new MapperConfiguration(c =>
     {
-        if (string.IsNullOrEmpty(accessToken))
-            return Unauthorized("Access token is required.");
-
-        try
-        {
-            var user = await AuthHelper.GetUserFromGoogleToken(accessToken);
-
-            if (userRepository.UserAlreadyExist(user.Email)) return Ok();
-
-            userRepository.AddEntity(user);
-
-            return userRepository.SaveChanges() ? Ok() : Unauthorized("Failed to add user to database.");
-        }
-        catch (Exception e)
-        {
-            return Unauthorized(e.Message);
-        }
+        c.CreateMap<User, UserDto>();
+        c.CreateMap<UserDto, User>();
+    })); 
+    
+    [HttpGet("Get")]
+    public async Task<ActionResult<UserDto>> GetUser()
+    {
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
+        var userDb = await userRepository.GetUserByIdAsync(userId);
+        
+        if (userDb is null)
+            return NotFound("User not found.");
+        
+        var user = _mapper.Map<UserDto>(userDb);
+        
+        return Ok(user);
     }
-
+    
     [HttpPost("UpdateUser")]
-    public async Task<ActionResult> UpdateUser([FromBody] string accessToken)
+    public async Task<ActionResult> UpdateUser([FromBody] UserDto userDto)
     {
-        if (string.IsNullOrEmpty(accessToken))
-            return Unauthorized("Access token is required.");
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
+        var userDb = await userRepository.GetUserByIdAsync(userId);
+        
+        if (userDb is null) return Unauthorized();
 
-        try
-        {
-            var updatedUser = await AuthHelper.GetUserFromGoogleToken(accessToken);
+        _mapper.Map(userDto, userDb);
 
-            var existingUser = userRepository.GetUserByEmail(updatedUser.Email);
+        userRepository.UpdateEntity(userDb);
 
-            if (existingUser == null)
-                return NotFound("User not found.");
-
-            existingUser.Name = updatedUser.Name;
-
-            userRepository.UpdateEntity(existingUser);
-
-            return userRepository.SaveChanges() ? Ok("User updated successfully.") : BadRequest("Failed to update user.");
-        }
-        catch (Exception e)
-        {
-            return Unauthorized(e.Message);
-        }
+        return await userRepository.SaveChangesAsync() ? Ok() : BadRequest("Failed to update user.");
     }
 
 }

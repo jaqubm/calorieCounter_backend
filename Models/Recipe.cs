@@ -16,26 +16,27 @@ public class Recipe
     [Required]
     public string Instructions { get; set; }
 
-    [MaxLength(255)]
+    [MaxLength(21)]
     [ForeignKey("Owner")]
-    public string? OwnerEmail { get; set; }
+    public string? OwnerId { get; set; }
     public virtual User? Owner { get; set; }
 
-    public virtual ICollection<RecipeProduct> RecipeProducts { get; set; } = new List<RecipeProduct>();
+    public virtual List<UserEntry> UserEntries { get; set; } = [];
+    public virtual List<RecipeProduct> RecipeProducts { get; set; } = [];
     
     public Recipe()
     {
         Id = Guid.NewGuid().ToString();
-        Name = "";
-        Instructions = "";
-        OwnerEmail = "";
+        Name = string.Empty;
+        Instructions = string.Empty;
+        OwnerId = string.Empty;
     }
 
-    public Recipe(string name, string instructions, string? ownerEmail)
+    public Recipe(string name, string instructions, string? ownerId)
     {
         Id = Guid.NewGuid().ToString();
         Name = name;
         Instructions = instructions;
-        OwnerEmail = ownerEmail;
+        OwnerId = ownerId;
     }
 }
