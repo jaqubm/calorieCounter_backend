@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using calorieCounter_backend.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
@@ -84,6 +85,23 @@ builder.Services.AddCors(options =>
             .AllowCredentials();
     });
 });
+
+// Configure JWT Bearer Authentication with Google
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = "https://accounts.google.com";
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = "https://accounts.google.com",
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["AppSettings:GoogleClientId"] ?? throw new NullReferenceException(),
+            ValidateLifetime = true,
+            RequireSignedTokens = true
+        };
+    });
 
 // Adding scoped connection between Repositories Interfaces and Repositories Classes
 builder.Services.AddScoped<IUserRepository, UserRepository>();
