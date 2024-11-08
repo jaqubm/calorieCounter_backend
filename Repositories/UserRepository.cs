@@ -18,6 +18,12 @@ public class UserRepository(IConfiguration config) : IUserRepository
         if (entity is not null)
             _entityFramework.Update(entity);
     }
+    
+    public void DeleteEntity<T>(T entity)
+    {
+        if (entity is not null)
+            _entityFramework.Remove(entity);
+    }
 
     public async Task<User?> GetUserByIdAsync(string userId)
     {

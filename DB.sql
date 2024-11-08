@@ -52,7 +52,6 @@ CREATE TABLE calorieCounter.[UserEntry] (
 );
 
 
-
 DROP TABLE calorieCounter.[RecipeProduct];
 DROP TABLE calorieCounter.[UserEntry];
 DROP TABLE calorieCounter.[Recipe];
