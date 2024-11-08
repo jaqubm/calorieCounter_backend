@@ -9,8 +9,7 @@ namespace calorieCounter_backend.Controllers;
 public class ApiController(IConfiguration config) : ControllerBase
 {
     private readonly DataContext _entityFramework = new(config);
-
-    [Authorize]
+    
     [HttpGet("Status")]
     public async Task<ActionResult<Dictionary<string, string>>> GetStatus()
     {
