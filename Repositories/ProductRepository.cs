@@ -1,5 +1,6 @@
 using calorieCounter_backend.Data;
 using calorieCounter_backend.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace calorieCounter_backend.Repositories;
 
@@ -7,15 +8,15 @@ public class ProductRepository(IConfiguration config) : IProductRepository
 {
     private readonly DataContext _entityFramework = new(config);
 
-    public bool SaveChanges()
+    public async Task<bool> SaveChangesAsync()
     {
-        return _entityFramework.SaveChanges() > 0;
+        return await _entityFramework.SaveChangesAsync() > 0;
     }
 
-    public void AddEntity<T>(T entity)
+    public async Task AddEntityAsync<T>(T entity)
     {
         if (entity is not null)
-            _entityFramework.Add(entity);
+            await _entityFramework.AddAsync(entity);
     }
 
     public void UpdateEntity<T>(T entity)
@@ -29,21 +30,28 @@ public class ProductRepository(IConfiguration config) : IProductRepository
         if (entity is not null)
             _entityFramework.Remove(entity);
     }
-
-    public Product? GetProductById(string id)
+    
+    public async Task<User?> GetUserByIdAsync(string userId)
     {
-        return _entityFramework
-            .Product
-            .FirstOrDefault(p => p.Id == id);
+        return await _entityFramework
+            .User
+            .FindAsync(userId);
     }
 
-    public List<Product> GetProductsByName(string name)
+    public async Task<Product?> GetProductByIdAsync(string id)
+    {
+        return await _entityFramework
+            .Product
+            .FindAsync(id);
+    }
+
+    public async Task<List<Product>> GetProductsByNameAsync(string name)
     {
         var queryable = _entityFramework.Product.AsQueryable();
         
         if (!string.IsNullOrEmpty(name))
             queryable = queryable.Where(p => p.Name.StartsWith(name));
         
-        return queryable.Take(30).ToList();
+        return await queryable.Take(30).ToListAsync();
     }
 }

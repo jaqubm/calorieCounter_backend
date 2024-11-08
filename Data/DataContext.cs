@@ -28,20 +28,30 @@ public class DataContext(IConfiguration config) : DbContext
 
         // User entity
         modelBuilder.Entity<User>()
-            .HasKey(u => u.Email);
+            .HasKey(u => u.Id); // Set Id as the primary key
+
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email) // Ensure Email is unique
+            .IsUnique();
 
         // Product entity
         modelBuilder.Entity<Product>()
+            .HasKey(p => p.Id); // Set Id as the primary key
+
+        modelBuilder.Entity<Product>()
             .HasOne(p => p.Owner)
-            .WithMany()
-            .HasForeignKey(p => p.OwnerEmail)
+            .WithMany(u => u.Products)
+            .HasForeignKey(p => p.OwnerId) // Updated to OwnerId
             .OnDelete(DeleteBehavior.Cascade);
 
         // Recipe entity
         modelBuilder.Entity<Recipe>()
+            .HasKey(r => r.Id); // Set Id as the primary key
+
+        modelBuilder.Entity<Recipe>()
             .HasOne(r => r.Owner)
-            .WithMany()
-            .HasForeignKey(r => r.OwnerEmail)
+            .WithMany(u => u.Recipes)
+            .HasForeignKey(r => r.OwnerId) // Updated to OwnerId
             .OnDelete(DeleteBehavior.Cascade);
 
         // RecipeProduct entity (many-to-many relationship between Recipe and Product)
@@ -56,26 +66,29 @@ public class DataContext(IConfiguration config) : DbContext
 
         modelBuilder.Entity<RecipeProduct>()
             .HasOne(rp => rp.Product)
-            .WithMany()
+            .WithMany(p => p.RecipeProducts)
             .HasForeignKey(rp => rp.ProductId)
             .OnDelete(DeleteBehavior.NoAction);
 
         // UserEntry entity
         modelBuilder.Entity<UserEntry>()
+            .HasKey(ue => ue.Id); // Set Id as the primary key
+
+        modelBuilder.Entity<UserEntry>()
             .HasOne(ue => ue.User)
-            .WithMany()
-            .HasForeignKey(ue => ue.UserEmail)
+            .WithMany(u => u.UserEntries)
+            .HasForeignKey(ue => ue.UserId) // Updated to UserId
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<UserEntry>()
             .HasOne(ue => ue.Product)
-            .WithMany()
+            .WithMany(p => p.UserEntries)
             .HasForeignKey(ue => ue.ProductId)
             .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<UserEntry>()
             .HasOne(ue => ue.Recipe)
-            .WithMany()
+            .WithMany(r => r.UserEntries)
             .HasForeignKey(ue => ue.RecipeId)
             .OnDelete(DeleteBehavior.NoAction);
     }

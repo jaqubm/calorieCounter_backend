@@ -10,12 +10,6 @@ public class UserEntry
     public string Id { get; set; }
 
     [Required]
-    [MaxLength(255)]
-    [ForeignKey("User")]
-    public string UserEmail { get; set; }
-    public virtual User User { get; set; }
-
-    [Required]
     [MaxLength(10)]
     public string EntryType { get; set; }
 
@@ -36,19 +30,25 @@ public class UserEntry
 
     public float? Weight { get; set; }
     
+    [Required]
+    [MaxLength(21)]
+    [ForeignKey("User")]
+    public string UserId { get; set; }
+    public virtual User User { get; set; }
+    
     public UserEntry()
     {
         Id = Guid.NewGuid().ToString();
-        UserEmail = "";
-        EntryType = "";
+        UserId = string.Empty;
+        EntryType = string.Empty;
         Date = DateTime.Now;
-        MealType = "";
+        MealType = string.Empty;
     }
 
-    public UserEntry(string userEmail, string entryType, DateTime date, string mealType, string? productId = null, string? recipeId = null, float? weight = null)
+    public UserEntry(string userId, string entryType, DateTime date, string mealType, string? productId = null, string? recipeId = null, float? weight = null)
     {
         Id = Guid.NewGuid().ToString();
-        UserEmail = userEmail;
+        UserId = userId;
         EntryType = entryType;
         Date = date;
         MealType = mealType;

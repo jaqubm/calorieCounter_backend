@@ -7,6 +7,10 @@ public class User
 {
     [Key]
     [Required]
+    [MaxLength(21)]
+    public string Id { get; set; }
+    
+    [Required]
     [MaxLength(255)]
     public string Email { get; set; }
 
@@ -14,14 +18,19 @@ public class User
     [MaxLength(255)]
     public string Name { get; set; }
 
+    public virtual List<UserEntry> UserEntries { get; set; } = [];
+    public virtual List<Product> Products { get; set; } = [];
+    public virtual List<Recipe> Recipes { get; set; } = [];
+
     public User()
     {
-        Email ??= "";
-        Name ??= "";
+        Email ??= string.Empty;
+        Name ??= string.Empty;
     }
 
-    public User(string email, string name)
+    public User(string id, string email, string name)
     {
+        Id = id;
         Email = email;
         Name = name;
     }

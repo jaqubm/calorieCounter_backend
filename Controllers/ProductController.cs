@@ -1,14 +1,17 @@
 using AutoMapper;
 using calorieCounter_backend.Dtos;
+using calorieCounter_backend.Helpers;
 using calorieCounter_backend.Models;
 using calorieCounter_backend.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace calorieCounter_backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
-public class ProductController(IProductRepository productRepository, IUserRepository userRepository) : ControllerBase
+public class ProductController(IProductRepository productRepository) : ControllerBase
 {
     private readonly Mapper _mapper = new(new MapperConfiguration(c =>
     {
@@ -16,14 +19,14 @@ public class ProductController(IProductRepository productRepository, IUserReposi
     })); 
     
     [HttpPost("Create")]
-    public ActionResult<string> CreateProduct([FromBody] ProductDto productDto)
+    public async Task<ActionResult<string>> CreateProduct([FromBody] ProductDto productDto)
     {
-        if (productDto.OwnerEmail is not null)
-        {
-            var userDb = userRepository.GetUserByEmail(productDto.OwnerEmail);
-            
-            if (userDb is null) return NotFound("User who tries to create new product does not exist.");
-        }
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
+        var userDb = await productRepository.GetUserByIdAsync(userId);
+        
+        if (userDb is null) return Unauthorized();
+        
+        productDto.OwnerId = userDb.Id;
         
         if (productDto.ValuesPer <= 0) return Problem("Values per product must be greater than zero.");
         if (productDto.Energy <= 0) return Problem("Energy must be greater than zero.");
@@ -33,22 +36,24 @@ public class ProductController(IProductRepository productRepository, IUserReposi
         
         var product = _mapper.Map<Product>(productDto);
         
-        productRepository.AddEntity(product);
+        await productRepository.AddEntityAsync(product);
         
-        return productRepository.SaveChanges() ? Ok(product.Id) : Problem("Creating new product failed.");
+        return await productRepository.SaveChangesAsync() ? Ok(product.Id) : Problem("Creating new product failed.");
     }
 
     [HttpPut("Update/{productId}")]
-    public ActionResult<string> UpdateProduct([FromRoute] string productId, [FromBody] ProductDto productDto)
+    public async Task<ActionResult<string>> UpdateProduct([FromRoute] string productId, [FromBody] ProductDto productDto)
     {
-        var productDb = productRepository.GetProductById(productId);
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
+        var userDb = await productRepository.GetUserByIdAsync(userId);
+        
+        if (userDb is null) return Unauthorized();
+        
+        var productDb = await productRepository.GetProductByIdAsync(productId);
         
         if (productDb is null) return NotFound("Product not found.");
         
-        if (productDto.OwnerEmail is null || productDb.OwnerEmail is null) 
-            return Unauthorized("User needs to be owner of the product in order to update it.");
-        
-        if (productDto.OwnerEmail != productDb.OwnerEmail) 
+        if (productDb.OwnerId != userId) 
             return Unauthorized("User needs to be owner of the product in order to update it.");
         
         if (productDto.ValuesPer <= 0) return Problem("Values per product must be greater than zero.");
@@ -61,13 +66,13 @@ public class ProductController(IProductRepository productRepository, IUserReposi
         
         productRepository.UpdateEntity(productDb);
         
-        return productRepository.SaveChanges() ? Ok(productId) : Problem("Updating product failed.");
+        return await productRepository.SaveChangesAsync() ? Ok(productId) : Problem("Updating product failed.");
     }
 
     [HttpGet("Get/{productId}")]
-    public ActionResult<Product> GetProduct([FromRoute] string productId)
+    public async Task<ActionResult<Product>> GetProduct([FromRoute] string productId)
     {
-        var productDb = productRepository.GetProductById(productId);
+        var productDb = await productRepository.GetProductByIdAsync(productId);
         
         if (productDb is null) return NotFound("Product not found.");
         
@@ -75,30 +80,37 @@ public class ProductController(IProductRepository productRepository, IUserReposi
     }
     
     [HttpGet("GetList")]
-    public ActionResult<List<Product>> GetListOfProducts()
+    public async Task<ActionResult<List<Product>>> GetListOfProducts()
     {
-        var listOfProductsDb = productRepository.GetProductsByName(string.Empty);
+        var listOfProductsDb = await productRepository.GetProductsByNameAsync(string.Empty);
         
         return Ok(listOfProductsDb);
     }
 
     [HttpGet("Search/{productName}")]
-    public ActionResult<List<Product>> SearchForProduct([FromRoute] string productName)
+    public async Task<ActionResult<List<Product>>> SearchForProduct([FromRoute] string productName)
     {
-        var searchResultsOfProductsByNameDb = productRepository.GetProductsByName(productName);
+        var searchResultsOfProductsByNameDb = await productRepository.GetProductsByNameAsync(productName);
         
         return Ok(searchResultsOfProductsByNameDb);
     }
 
     [HttpDelete("Delete/{productId}")]
-    public ActionResult DeleteProduct([FromRoute] string productId)
+    public async Task<ActionResult> DeleteProduct([FromRoute] string productId)
     {
-        var productDb = productRepository.GetProductById(productId);
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
+        var userDb = await productRepository.GetUserByIdAsync(userId);
+        
+        if (userDb is null) return Unauthorized();
+        
+        var productDb = await productRepository.GetProductByIdAsync(productId);
         
         if (productDb is null) return NotFound("Product not found.");
+        if (productDb.OwnerId != userId) 
+            return Unauthorized("User needs to be owner of the product in order to delete it.");
         
         productRepository.DeleteEntity(productDb);
         
-        return productRepository.SaveChanges() ? Ok(productId) : Problem("Deleting product failed.");
+        return await productRepository.SaveChangesAsync() ? Ok(productId) : Problem("Deleting product failed.");
     }
 }
