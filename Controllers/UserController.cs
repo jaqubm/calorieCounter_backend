@@ -57,4 +57,29 @@ public class UserController(IUserRepository userRepository) : ControllerBase
         }
     }
 
+    [HttpDelete("DeleteUser")]
+    public async Task<ActionResult> DeleteUser([FromBody] string accessToken)
+    {
+        if (string.IsNullOrEmpty(accessToken))
+            return Unauthorized("Access token is required.");
+
+        try
+        {
+            var userToDelete = await AuthHelper.GetUserFromGoogleToken(accessToken);
+
+            var existingUser = userRepository.GetUserByEmail(userToDelete.Email);
+
+            if (existingUser == null)
+                return NotFound("User not found.");
+
+            userRepository.DeleteEntity(existingUser);
+
+            return userRepository.SaveChanges() ? Ok("User deleted successfully.") : BadRequest("Failed to delete user.");
+        }
+        catch (Exception e)
+        {
+            return Unauthorized(e.Message);
+        }
+    }
+
 }
