@@ -107,6 +107,7 @@ builder.Services
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 
 var app = builder.Build();
 
