@@ -96,7 +96,7 @@ public class RecipeController(IRecipeRepository recipeRepository) : ControllerBa
     }
 
     [HttpGet("Search/{recipeName}")]
-    public async Task<ActionResult<List<Recipe>>> SearchRecipes([FromRoute] string recipeName)
+    public async Task<ActionResult<List<RecipeDto>>> SearchRecipes([FromRoute] string recipeName)
     {
         var recipeListDb = await recipeRepository.SearchRecipesByNameAsync(recipeName);
         var recipeList = _mapper.Map<List<RecipeDto>>(recipeListDb);
