@@ -17,7 +17,9 @@ public class RecipeController(IRecipeRepository recipeRepository) : ControllerBa
     {
         c.CreateMap<RecipeDto, Recipe>()
             .ForMember(r => r.RecipeProducts, opt => opt.Ignore());
+        c.CreateMap<Recipe, RecipeDto>();
         c.CreateMap<RecipeProductDto, RecipeProduct>();
+        c.CreateMap<RecipeProduct, RecipeProductDto>();
     }));
 
     [HttpPost("Create")]
@@ -73,29 +75,33 @@ public class RecipeController(IRecipeRepository recipeRepository) : ControllerBa
     }
 
     [HttpGet("Get/{recipeId}")]
-    public async Task<ActionResult<Recipe>> GetRecipe([FromRoute] string recipeId)
+    public async Task<ActionResult<RecipeDto>> GetRecipe([FromRoute] string recipeId)
     {
         var recipeDb = await recipeRepository.GetRecipeByIdAsync(recipeId);
 
         if (recipeDb is null) return NotFound("Recipe not found.");
+        
+        var recipe = _mapper.Map<RecipeDto>(recipeDb);
 
-        return Ok(recipeDb);
+        return Ok(recipe);
     }
 
     [HttpGet("GetListOfRecipes")]
-    public async Task<ActionResult<List<Recipe>>> GetListOfRecipes()
+    public async Task<ActionResult<List<RecipeDto>>> GetListOfRecipes()
     {
-        var recipes = await recipeRepository.GetRecipesAsync();
+        var recipeListDb = await recipeRepository.GetRecipesAsync();
+        var recipeList = _mapper.Map<List<RecipeDto>>(recipeListDb);
 
-        return Ok(recipes);
+        return Ok(recipeList);
     }
 
     [HttpGet("Search/{recipeName}")]
     public async Task<ActionResult<List<Recipe>>> SearchRecipes([FromRoute] string recipeName)
     {
-        var recipes = await recipeRepository.SearchRecipesByNameAsync(recipeName);
+        var recipeListDb = await recipeRepository.SearchRecipesByNameAsync(recipeName);
+        var recipeList = _mapper.Map<List<RecipeDto>>(recipeListDb);
 
-        return Ok(recipes);
+        return Ok(recipeList);
     }
 
     [HttpDelete("Delete/{recipeId}")]
