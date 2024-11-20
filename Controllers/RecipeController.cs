@@ -23,11 +23,8 @@ public class RecipeController(IRecipeRepository recipeRepository) : ControllerBa
     public async Task<ActionResult<string>> CreateRecipe([FromBody] RecipeCreatorDto recipeCreatorDto)
     {
         var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
-        var userDb = await recipeRepository.GetUserByIdAsync(userId);
 
-        if (userDb is null) return Unauthorized();
-
-        var recipe = new Recipe(recipeCreatorDto.Name, recipeCreatorDto.Instructions, userDb.Id);
+        var recipe = new Recipe(recipeCreatorDto.Name, recipeCreatorDto.Instructions, userId);
 
         foreach (var product in recipeCreatorDto.ProductsList)
         {
@@ -42,12 +39,9 @@ public class RecipeController(IRecipeRepository recipeRepository) : ControllerBa
     }
 
     [HttpPut("Update/{recipeId}")]
-    public async Task<ActionResult<string>> UpdateRecipe([FromRoute] string recipeId, [FromBody] RecipeDto recipeDto)
+    public async Task<ActionResult<string>> UpdateRecipe([FromRoute] string recipeId, [FromBody] RecipeCreatorDto recipeCreatorDto)
     {
         var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
-        var userDb = await recipeRepository.GetUserByIdAsync(userId);
-
-        if (userDb is null) return Unauthorized();
 
         var recipeDb = await recipeRepository.GetRecipeByIdAsync(recipeId);
 
@@ -55,15 +49,15 @@ public class RecipeController(IRecipeRepository recipeRepository) : ControllerBa
         if (recipeDb.OwnerId != userId)
             return Unauthorized("User needs to be the owner of the recipe to update it.");
 
-        recipeDb.Name = recipeDto.Name;
-        recipeDb.Instructions = recipeDto.Instructions;
+        recipeDb.Name = recipeCreatorDto.Name;
+        recipeDb.Instructions = recipeCreatorDto.Instructions;
 
         recipeDb.RecipeProducts.Clear();
-        foreach (var recipeProductDto in recipeDto.RecipeProducts)
+        foreach (var product in recipeCreatorDto.ProductsList)
         {
-            var recipeProduct = _mapper.Map<RecipeProduct>(recipeProductDto);
-            recipeProduct.RecipeId = recipeDb.Id;
-            recipeDb.RecipeProducts.Add(recipeProduct);
+            var productDb = await recipeRepository.GetProductByIdAsync(product.ProductId);
+            if (productDb is null) return NotFound("Product used in Recipe not found.");
+            recipeDb.RecipeProducts.Add(new RecipeProduct(recipeDb.Id, product.ProductId, product.Weight));
         }
 
         recipeRepository.UpdateEntity(recipeDb);
