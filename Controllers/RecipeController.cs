@@ -99,9 +99,6 @@ public class RecipeController(IRecipeRepository recipeRepository) : ControllerBa
     public async Task<ActionResult> DeleteRecipe([FromRoute] string recipeId)
     {
         var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
-        var userDb = await recipeRepository.GetUserByIdAsync(userId);
-
-        if (userDb is null) return Unauthorized();
 
         var recipeDb = await recipeRepository.GetRecipeByIdAsync(recipeId);
 
