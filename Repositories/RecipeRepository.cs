@@ -35,17 +35,26 @@ public class RecipeRepository(IConfiguration config) : IRecipeRepository
     {
         return await _entityFramework.User.FindAsync(userId);
     }
+    
+    public async Task<Product?> GetProductByIdAsync(string id)
+    {
+        return await _entityFramework
+            .Product
+            .FindAsync(id);
+    }
 
     public async Task<Recipe?> GetRecipeByIdAsync(string recipeId)
     {
-        return await _entityFramework.Recipe
+        return await _entityFramework
+            .Recipe
             .Include(r => r.RecipeProducts)
             .FirstOrDefaultAsync(r => r.Id == recipeId);
     }
 
     public async Task<List<Recipe>> GetRecipesAsync()
     {
-        return await _entityFramework.Recipe
+        return await _entityFramework
+            .Recipe
             .Include(r => r.RecipeProducts)
             .Take(30)
             .ToListAsync();
