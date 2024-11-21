@@ -30,28 +30,35 @@ public class ProductRepository(IConfiguration config) : IProductRepository
         if (entity is not null)
             _entityFramework.Remove(entity);
     }
-    
+
     public async Task<User?> GetUserByIdAsync(string userId)
     {
-        return await _entityFramework
-            .User
-            .FindAsync(userId);
+        return await _entityFramework.User
+            .Include(u => u.Products)
+            .Include(u => u.Recipes)
+            .FirstOrDefaultAsync(u => u.Id == userId);
     }
 
     public async Task<Product?> GetProductByIdAsync(string id)
     {
-        return await _entityFramework
-            .Product
-            .FindAsync(id);
+        return await _entityFramework.Product
+            .Include(p => p.RecipeProducts)
+            .ThenInclude(rp => rp.Recipe)
+            .Include(p => p.Owner)
+            .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task<List<Product>> GetProductsByNameAsync(string name)
     {
-        var queryable = _entityFramework.Product.AsQueryable();
-        
+        var queryable = _entityFramework.Product
+            .Include(p => p.RecipeProducts)
+            .ThenInclude(rp => rp.Recipe)
+            .Include(p => p.Owner)
+            .AsQueryable();
+
         if (!string.IsNullOrEmpty(name))
             queryable = queryable.Where(p => p.Name.StartsWith(name));
-        
+
         return await queryable.Take(30).ToListAsync();
     }
 }

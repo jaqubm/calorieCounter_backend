@@ -4,13 +4,16 @@ namespace calorieCounter_backend.Repositories;
 
 public interface IRecipeRepository
 {
-    Task<bool> SaveChangesAsync();
-    Task AddEntityAsync<T>(T entity);
-    void UpdateEntity<T>(T entity);
-    void DeleteEntity<T>(T entity);
+    public Task<bool> SaveChangesAsync();
+    public Task AddEntityAsync<T>(T entity);
+    public void UpdateEntity<T>(T entity);
+    public void DeleteEntity<T>(T entity);
 
-    Task<User?> GetUserByIdAsync(string userId);
-    Task<Recipe?> GetRecipeByIdAsync(string recipeId);
-    Task<List<Recipe>> GetRecipesAsync();
-    Task<List<Recipe>> SearchRecipesByNameAsync(string name);
+    public Task<User?> GetUserByIdAsync(string userId);
+    
+    public Task<Product?> GetProductByIdAsync(string id);
+    public Task<Recipe?> GetRecipeByIdAsync(string recipeId);
+    
+    public Task<List<Recipe>> GetRecipesAsync();
+    public Task<List<Recipe>> SearchRecipesByNameAsync(string name);
 }
