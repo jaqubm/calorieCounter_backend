@@ -1,8 +1,7 @@
-namespace calorieCounter_backend.Dtos;
+﻿namespace calorieCounter_backend.Dtos;
 
-public class ProductDto
+public class ProductCreatorDto
 {
-    public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public float ValuesPer { get; set; }
     public float Energy { get; set; }

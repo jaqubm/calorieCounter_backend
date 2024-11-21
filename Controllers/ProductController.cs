@@ -15,84 +15,88 @@ public class ProductController(IProductRepository productRepository) : Controlle
 {
     private readonly Mapper _mapper = new(new MapperConfiguration(c =>
     {
-        c.CreateMap<ProductDto, Product>();
-    })); 
-    
+        c.CreateMap<Product, ProductDto>();
+        c.CreateMap<ProductCreatorDto, Product>();
+    }));
+
     [HttpPost("Create")]
-    public async Task<ActionResult<string>> CreateProduct([FromBody] ProductDto productDto)
+    public async Task<ActionResult<string>> CreateProduct([FromBody] ProductCreatorDto productCreatorDto)
     {
         var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
         var userDb = await productRepository.GetUserByIdAsync(userId);
-        
+
         if (userDb is null) return Unauthorized();
-        
-        productDto.OwnerId = userDb.Id;
-        
-        if (productDto.ValuesPer <= 0) return Problem("Values per product must be greater than zero.");
-        if (productDto.Energy <= 0) return Problem("Energy must be greater than zero.");
-        if (productDto.Protein <= 0) return Problem("Protein must be greater than zero.");
-        if (productDto.Fat <= 0) return Problem("Fat must be greater than zero.");
-        if (productDto.Carbohydrates <= 0) return Problem("Carbohydrates must be greater than zero.");
-        
-        var product = _mapper.Map<Product>(productDto);
-        
+
+        if (productCreatorDto.ValuesPer <= 0) return Problem("Values per product must be greater than zero.");
+        if (productCreatorDto.Energy <= 0) return Problem("Energy must be greater than zero.");
+        if (productCreatorDto.Protein <= 0) return Problem("Protein must be greater than zero.");
+        if (productCreatorDto.Fat <= 0) return Problem("Fat must be greater than zero.");
+        if (productCreatorDto.Carbohydrates <= 0) return Problem("Carbohydrates must be greater than zero.");
+
+        var product = _mapper.Map<Product>(productCreatorDto);
+        product.OwnerId = userDb.Id;
+
         await productRepository.AddEntityAsync(product);
-        
+
         return await productRepository.SaveChangesAsync() ? Ok(product.Id) : Problem("Creating new product failed.");
     }
 
     [HttpPut("Update/{productId}")]
-    public async Task<ActionResult<string>> UpdateProduct([FromRoute] string productId, [FromBody] ProductDto productDto)
+    public async Task<ActionResult<string>> UpdateProduct([FromRoute] string productId, [FromBody] ProductCreatorDto productCreatorDto)
     {
         var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
         var userDb = await productRepository.GetUserByIdAsync(userId);
-        
+
         if (userDb is null) return Unauthorized();
-        
+
         var productDb = await productRepository.GetProductByIdAsync(productId);
-        
+
         if (productDb is null) return NotFound("Product not found.");
-        
-        if (productDb.OwnerId != userId) 
+
+        if (productDb.OwnerId != userId)
             return Unauthorized("User needs to be owner of the product in order to update it.");
-        
-        if (productDto.ValuesPer <= 0) return Problem("Values per product must be greater than zero.");
-        if (productDto.Energy <= 0) return Problem("Energy must be greater than zero.");
-        if (productDto.Protein <= 0) return Problem("Protein must be greater than zero.");
-        if (productDto.Fat <= 0) return Problem("Fat must be greater than zero.");
-        if (productDto.Carbohydrates <= 0) return Problem("Carbohydrates must be greater than zero.");
-        
-        _mapper.Map(productDto, productDb);
-        
+
+        if (productCreatorDto.ValuesPer <= 0) return Problem("Values per product must be greater than zero.");
+        if (productCreatorDto.Energy <= 0) return Problem("Energy must be greater than zero.");
+        if (productCreatorDto.Protein <= 0) return Problem("Protein must be greater than zero.");
+        if (productCreatorDto.Fat <= 0) return Problem("Fat must be greater than zero.");
+        if (productCreatorDto.Carbohydrates <= 0) return Problem("Carbohydrates must be greater than zero.");
+
+        _mapper.Map(productCreatorDto, productDb);
+        productDb.OwnerId = productDb.OwnerId;
+
         productRepository.UpdateEntity(productDb);
-        
+
         return await productRepository.SaveChangesAsync() ? Ok(productId) : Problem("Updating product failed.");
     }
 
     [HttpGet("Get/{productId}")]
-    public async Task<ActionResult<Product>> GetProduct([FromRoute] string productId)
+    public async Task<ActionResult<ProductDto>> GetProduct([FromRoute] string productId)
     {
         var productDb = await productRepository.GetProductByIdAsync(productId);
-        
+
         if (productDb is null) return NotFound("Product not found.");
-        
-        return Ok(productDb);
+
+        var productDto = _mapper.Map<ProductDto>(productDb);
+        return Ok(productDto);
     }
-    
+
     [HttpGet("GetList")]
-    public async Task<ActionResult<List<Product>>> GetListOfProducts()
+    public async Task<ActionResult<List<ProductDto>>> GetListOfProducts()
     {
         var listOfProductsDb = await productRepository.GetProductsByNameAsync(string.Empty);
-        
-        return Ok(listOfProductsDb);
+        var listOfProductsDto = _mapper.Map<List<ProductDto>>(listOfProductsDb);
+
+        return Ok(listOfProductsDto);
     }
 
     [HttpGet("Search/{productName}")]
-    public async Task<ActionResult<List<Product>>> SearchForProduct([FromRoute] string productName)
+    public async Task<ActionResult<List<ProductDto>>> SearchForProduct([FromRoute] string productName)
     {
-        var searchResultsOfProductsByNameDb = await productRepository.GetProductsByNameAsync(productName);
-        
-        return Ok(searchResultsOfProductsByNameDb);
+        var searchResultsOfProductsDb = await productRepository.GetProductsByNameAsync(productName);
+        var searchResultsOfProductsDto = _mapper.Map<List<ProductDto>>(searchResultsOfProductsDb);
+
+        return Ok(searchResultsOfProductsDto);
     }
 
     [HttpDelete("Delete/{productId}")]
@@ -100,17 +104,17 @@ public class ProductController(IProductRepository productRepository) : Controlle
     {
         var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
         var userDb = await productRepository.GetUserByIdAsync(userId);
-        
+
         if (userDb is null) return Unauthorized();
-        
+
         var productDb = await productRepository.GetProductByIdAsync(productId);
-        
+
         if (productDb is null) return NotFound("Product not found.");
-        if (productDb.OwnerId != userId) 
+        if (productDb.OwnerId != userId)
             return Unauthorized("User needs to be owner of the product in order to delete it.");
-        
+
         productRepository.DeleteEntity(productDb);
-        
+
         return await productRepository.SaveChangesAsync() ? Ok(productId) : Problem("Deleting product failed.");
     }
 }
