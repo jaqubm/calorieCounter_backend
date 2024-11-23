@@ -73,28 +73,65 @@ public class ProductController(IProductRepository productRepository) : Controlle
     [HttpGet("Get/{productId}")]
     public async Task<ActionResult<ProductDto>> GetProduct([FromRoute] string productId)
     {
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
+
         var productDb = await productRepository.GetProductByIdAsync(productId);
+        if (productDb is null)
+            return NotFound("Product not found.");
 
-        if (productDb is null) return NotFound("Product not found.");
+        var productDto = new ProductDto
+        {
+            Id = productDb.Id,
+            Name = productDb.Name,
+            ValuesPer = productDb.ValuesPer,
+            Energy = productDb.Energy,
+            Protein = productDb.Protein,
+            Carbohydrates = productDb.Carbohydrates,
+            Fat = productDb.Fat,
+            IsOwner = productDb.OwnerId == userId
+        };
 
-        var productDto = _mapper.Map<ProductDto>(productDb);
         return Ok(productDto);
     }
 
     [HttpGet("GetList")]
     public async Task<ActionResult<List<ProductDto>>> GetListOfProducts()
     {
-        var listOfProductsDb = await productRepository.GetProductsByNameAsync(string.Empty);
-        var listOfProductsDto = _mapper.Map<List<ProductDto>>(listOfProductsDb);
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
 
-        return Ok(listOfProductsDto);
+        var productListDb = await productRepository.GetProductsByNameAsync(string.Empty);
+        var productListDto = productListDb.Select(product => new ProductDto
+        {
+            Id = product.Id,
+            Name = product.Name,
+            ValuesPer = product.ValuesPer,
+            Energy = product.Energy,
+            Protein = product.Protein,
+            Carbohydrates = product.Carbohydrates,
+            Fat = product.Fat,
+            IsOwner = product.OwnerId == userId
+        }).ToList();
+
+        return Ok(productListDto);
     }
 
     [HttpGet("Search/{productName}")]
     public async Task<ActionResult<List<ProductDto>>> SearchForProduct([FromRoute] string productName)
     {
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
+
         var searchResultsOfProductsDb = await productRepository.GetProductsByNameAsync(productName);
-        var searchResultsOfProductsDto = _mapper.Map<List<ProductDto>>(searchResultsOfProductsDb);
+        var searchResultsOfProductsDto = searchResultsOfProductsDb.Select(product => new ProductDto
+        {
+            Id = product.Id,
+            Name = product.Name,
+            ValuesPer = product.ValuesPer,
+            Energy = product.Energy,
+            Protein = product.Protein,
+            Carbohydrates = product.Carbohydrates,
+            Fat = product.Fat,
+            IsOwner = product.OwnerId == userId
+        }).ToList();
 
         return Ok(searchResultsOfProductsDto);
     }
