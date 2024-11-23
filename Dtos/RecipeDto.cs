@@ -10,5 +10,6 @@ public class RecipeDto
     public float TotalProtein { get; set; }
     public float TotalCarbohydrates { get; set; }
     public float TotalFat { get; set; }
+    public bool IsOwner { get; set; }
     public List<RecipeProductDto> RecipeProducts { get; set; } = [];
 }

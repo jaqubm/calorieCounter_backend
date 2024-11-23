@@ -73,28 +73,48 @@ public class ProductController(IProductRepository productRepository) : Controlle
     [HttpGet("Get/{productId}")]
     public async Task<ActionResult<ProductDto>> GetProduct([FromRoute] string productId)
     {
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
         var productDb = await productRepository.GetProductByIdAsync(productId);
 
         if (productDb is null) return NotFound("Product not found.");
 
         var productDto = _mapper.Map<ProductDto>(productDb);
+        productDto.IsOwner = productDb.OwnerId == userId;
         return Ok(productDto);
     }
 
     [HttpGet("GetList")]
     public async Task<ActionResult<List<ProductDto>>> GetListOfProducts()
     {
-        var listOfProductsDb = await productRepository.GetProductsByNameAsync(string.Empty);
-        var listOfProductsDto = _mapper.Map<List<ProductDto>>(listOfProductsDb);
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
 
-        return Ok(listOfProductsDto);
+        var productListDb = await productRepository.GetProductsByNameAsync(string.Empty);
+        var productListDto = productListDb
+            .Select(product =>
+            {
+                var productDto = _mapper.Map<ProductDto>(product);
+                productDto.IsOwner = product.OwnerId == userId;
+                return productDto;
+            })
+            .ToList();
+
+        return Ok(productListDto);
     }
 
     [HttpGet("Search/{productName}")]
     public async Task<ActionResult<List<ProductDto>>> SearchForProduct([FromRoute] string productName)
     {
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
+
         var searchResultsOfProductsDb = await productRepository.GetProductsByNameAsync(productName);
-        var searchResultsOfProductsDto = _mapper.Map<List<ProductDto>>(searchResultsOfProductsDb);
+        var searchResultsOfProductsDto = searchResultsOfProductsDb
+            .Select(product =>
+            {
+                var productDto = _mapper.Map<ProductDto>(product);
+                productDto.IsOwner = product.OwnerId == userId;
+                return productDto;
+            })
+            .ToList();
 
         return Ok(searchResultsOfProductsDto);
     }

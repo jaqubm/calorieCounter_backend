@@ -9,4 +9,5 @@ public class ProductDto
     public float Protein { get; set; }
     public float Carbohydrates { get; set; }
     public float Fat { get; set; }
+    public bool IsOwner { get; set; }
 }

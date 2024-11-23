@@ -68,6 +68,7 @@ public class RecipeController(IRecipeRepository recipeRepository) : ControllerBa
     [HttpGet("Get/{recipeId}")]
     public async Task<ActionResult<RecipeDto>> GetRecipe([FromRoute] string recipeId)
     {
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
         var recipeDb = await recipeRepository.GetRecipeByIdAsync(recipeId);
 
         if (recipeDb is null) return NotFound("Recipe not found.");
@@ -86,14 +87,14 @@ public class RecipeController(IRecipeRepository recipeRepository) : ControllerBa
                 ProteinPerWeight = rp.Product.Protein * (rp.Weight / rp.Product.ValuesPer),
                 CarbohydratesPerWeight = rp.Product.Carbohydrates * (rp.Weight / rp.Product.ValuesPer),
                 FatPerWeight = rp.Product.Fat * (rp.Weight / rp.Product.ValuesPer)
-            }).ToList()
+            }).ToList(),
+            TotalWeight = recipeDb.RecipeProducts.Sum(rp => rp.Weight),
+            TotalEnergy = recipeDb.RecipeProducts.Sum(rp => rp.Product.Energy * (rp.Weight / rp.Product.ValuesPer)),
+            TotalProtein = recipeDb.RecipeProducts.Sum(rp => rp.Product.Protein * (rp.Weight / rp.Product.ValuesPer)),
+            TotalCarbohydrates = recipeDb.RecipeProducts.Sum(rp => rp.Product.Carbohydrates * (rp.Weight / rp.Product.ValuesPer)),
+            TotalFat = recipeDb.RecipeProducts.Sum(rp => rp.Product.Fat * (rp.Weight / rp.Product.ValuesPer)),
+            IsOwner = recipeDb.OwnerId == userId
         };
-
-        recipeDto.TotalWeight = recipeDto.RecipeProducts.Sum(rp => rp.Weight);
-        recipeDto.TotalEnergy = recipeDto.RecipeProducts.Sum(rp => rp.EnergyPerWeight);
-        recipeDto.TotalProtein = recipeDto.RecipeProducts.Sum(rp => rp.ProteinPerWeight);
-        recipeDto.TotalCarbohydrates = recipeDto.RecipeProducts.Sum(rp => rp.CarbohydratesPerWeight);
-        recipeDto.TotalFat = recipeDto.RecipeProducts.Sum(rp => rp.FatPerWeight);
 
         return Ok(recipeDto);
     }
@@ -101,6 +102,7 @@ public class RecipeController(IRecipeRepository recipeRepository) : ControllerBa
     [HttpGet("GetListOfRecipes")]
     public async Task<ActionResult<List<RecipeDto>>> GetListOfRecipes()
     {
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
         var recipeListDb = await recipeRepository.GetRecipesAsync();
 
         var recipeListDto = recipeListDb.Select(recipe => new RecipeDto
@@ -122,7 +124,8 @@ public class RecipeController(IRecipeRepository recipeRepository) : ControllerBa
             TotalEnergy = recipe.RecipeProducts.Sum(rp => rp.Product.Energy * (rp.Weight / rp.Product.ValuesPer)),
             TotalProtein = recipe.RecipeProducts.Sum(rp => rp.Product.Protein * (rp.Weight / rp.Product.ValuesPer)),
             TotalCarbohydrates = recipe.RecipeProducts.Sum(rp => rp.Product.Carbohydrates * (rp.Weight / rp.Product.ValuesPer)),
-            TotalFat = recipe.RecipeProducts.Sum(rp => rp.Product.Fat * (rp.Weight / rp.Product.ValuesPer))
+            TotalFat = recipe.RecipeProducts.Sum(rp => rp.Product.Fat * (rp.Weight / rp.Product.ValuesPer)),
+            IsOwner = recipe.OwnerId == userId
         }).ToList();
 
         return Ok(recipeListDto);
@@ -131,6 +134,7 @@ public class RecipeController(IRecipeRepository recipeRepository) : ControllerBa
     [HttpGet("Search/{recipeName}")]
     public async Task<ActionResult<List<RecipeDto>>> SearchRecipes([FromRoute] string recipeName)
     {
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
         var recipeListDb = await recipeRepository.SearchRecipesByNameAsync(recipeName);
 
         var recipeListDto = recipeListDb.Select(recipe => new RecipeDto
@@ -152,7 +156,8 @@ public class RecipeController(IRecipeRepository recipeRepository) : ControllerBa
             TotalEnergy = recipe.RecipeProducts.Sum(rp => rp.Product.Energy * (rp.Weight / rp.Product.ValuesPer)),
             TotalProtein = recipe.RecipeProducts.Sum(rp => rp.Product.Protein * (rp.Weight / rp.Product.ValuesPer)),
             TotalCarbohydrates = recipe.RecipeProducts.Sum(rp => rp.Product.Carbohydrates * (rp.Weight / rp.Product.ValuesPer)),
-            TotalFat = recipe.RecipeProducts.Sum(rp => rp.Product.Fat * (rp.Weight / rp.Product.ValuesPer))
+            TotalFat = recipe.RecipeProducts.Sum(rp => rp.Product.Fat * (rp.Weight / rp.Product.ValuesPer)),
+            IsOwner = recipe.OwnerId == userId
         }).ToList();
 
         return Ok(recipeListDto);
