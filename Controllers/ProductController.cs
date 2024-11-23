@@ -74,23 +74,12 @@ public class ProductController(IProductRepository productRepository) : Controlle
     public async Task<ActionResult<ProductDto>> GetProduct([FromRoute] string productId)
     {
         var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
-
         var productDb = await productRepository.GetProductByIdAsync(productId);
-        if (productDb is null)
-            return NotFound("Product not found.");
 
-        var productDto = new ProductDto
-        {
-            Id = productDb.Id,
-            Name = productDb.Name,
-            ValuesPer = productDb.ValuesPer,
-            Energy = productDb.Energy,
-            Protein = productDb.Protein,
-            Carbohydrates = productDb.Carbohydrates,
-            Fat = productDb.Fat,
-            IsOwner = productDb.OwnerId == userId
-        };
+        if (productDb is null) return NotFound("Product not found.");
 
+        var productDto = _mapper.Map<ProductDto>(productDb);
+        productDto.IsOwner = productDb.OwnerId == userId;
         return Ok(productDto);
     }
 
@@ -100,17 +89,14 @@ public class ProductController(IProductRepository productRepository) : Controlle
         var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
 
         var productListDb = await productRepository.GetProductsByNameAsync(string.Empty);
-        var productListDto = productListDb.Select(product => new ProductDto
-        {
-            Id = product.Id,
-            Name = product.Name,
-            ValuesPer = product.ValuesPer,
-            Energy = product.Energy,
-            Protein = product.Protein,
-            Carbohydrates = product.Carbohydrates,
-            Fat = product.Fat,
-            IsOwner = product.OwnerId == userId
-        }).ToList();
+        var productListDto = productListDb
+            .Select(product =>
+            {
+                var productDto = _mapper.Map<ProductDto>(product);
+                productDto.IsOwner = product.OwnerId == userId;
+                return productDto;
+            })
+            .ToList();
 
         return Ok(productListDto);
     }
@@ -121,17 +107,14 @@ public class ProductController(IProductRepository productRepository) : Controlle
         var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
 
         var searchResultsOfProductsDb = await productRepository.GetProductsByNameAsync(productName);
-        var searchResultsOfProductsDto = searchResultsOfProductsDb.Select(product => new ProductDto
-        {
-            Id = product.Id,
-            Name = product.Name,
-            ValuesPer = product.ValuesPer,
-            Energy = product.Energy,
-            Protein = product.Protein,
-            Carbohydrates = product.Carbohydrates,
-            Fat = product.Fat,
-            IsOwner = product.OwnerId == userId
-        }).ToList();
+        var searchResultsOfProductsDto = searchResultsOfProductsDb
+            .Select(product =>
+            {
+                var productDto = _mapper.Map<ProductDto>(product);
+                productDto.IsOwner = product.OwnerId == userId;
+                return productDto;
+            })
+            .ToList();
 
         return Ok(searchResultsOfProductsDto);
     }
