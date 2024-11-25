@@ -17,6 +17,18 @@ public class User
     [Required]
     [MaxLength(255)]
     public string Name { get; set; }
+    
+    [Required]
+    public float Energy { get; set; }
+
+    [Required]
+    public float Protein { get; set; }
+
+    [Required]
+    public float Carbohydrates { get; set; }
+
+    [Required]
+    public float Fat { get; set; }
 
     public virtual List<UserEntry> UserEntries { get; set; } = [];
     public virtual List<Product> Products { get; set; } = [];
@@ -26,12 +38,9 @@ public class User
     {
         Email ??= string.Empty;
         Name ??= string.Empty;
-    }
-
-    public User(string id, string email, string name)
-    {
-        Id = id;
-        Email = email;
-        Name = name;
+        Energy = 2000.0f;
+        Protein = 90.0f;
+        Carbohydrates = 210.0f;
+        Fat = 60.0f;
     }
 }

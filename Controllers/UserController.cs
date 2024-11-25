@@ -16,7 +16,8 @@ public class UserController(IUserRepository userRepository) : ControllerBase
     private readonly Mapper _mapper = new(new MapperConfiguration(c =>
     {
         c.CreateMap<User, UserDto>();
-        c.CreateMap<UserDto, User>();
+        c.CreateMap<UserUpdateDto, User>();
+        c.CreateMap<UserUpdateGoalsDto, User>();
     })); 
     
     [HttpGet("Get")]
@@ -33,19 +34,34 @@ public class UserController(IUserRepository userRepository) : ControllerBase
         return Ok(user);
     }
     
-    [HttpPost("UpdateUser")]
-    public async Task<ActionResult> UpdateUser([FromBody] UserDto userDto)
+    [HttpPut("UpdateUser")]
+    public async Task<ActionResult> UpdateUser([FromBody] UserUpdateDto userUpdateDto)
     {
         var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
         var userDb = await userRepository.GetUserByIdAsync(userId);
         
         if (userDb is null) return Unauthorized();
 
-        _mapper.Map(userDto, userDb);
+        _mapper.Map(userUpdateDto, userDb);
 
         userRepository.UpdateEntity(userDb);
 
         return await userRepository.SaveChangesAsync() ? Ok() : BadRequest("Failed to update user.");
+    }
+
+    [HttpPut("UpdateGoals")]
+    public async Task<ActionResult> UpdateUserGoals([FromBody] UserUpdateGoalsDto userUpdateGoalsDto)
+    {
+        var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
+        var userDb = await userRepository.GetUserByIdAsync(userId);
+        
+        if (userDb is null) return Unauthorized();
+
+        _mapper.Map(userUpdateGoalsDto, userDb);
+
+        userRepository.UpdateEntity(userDb);
+
+        return await userRepository.SaveChangesAsync() ? Ok() : BadRequest("Failed to update user goals.");
     }
 
     [HttpDelete("DeleteUser")]

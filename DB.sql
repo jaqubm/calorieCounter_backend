@@ -5,7 +5,11 @@ CREATE TABLE calorieCounter.[User]
 (
     Id NVARCHAR(21) NOT NULL PRIMARY KEY,
     Email NVARCHAR(255) NOT NULL UNIQUE,
-    Name NVARCHAR(255) NOT NULL
+    Name NVARCHAR(255) NOT NULL,
+    Energy REAL NOT NULL,
+    Protein REAL NOT NULL,
+    Carbohydrates REAL NOT NULL,
+    Fat REAL NOT NULL
 );
 
 CREATE TABLE calorieCounter.[Product] (
