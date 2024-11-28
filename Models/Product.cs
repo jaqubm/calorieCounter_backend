@@ -28,7 +28,7 @@ public class Product
     [Required]
     public float Fat { get; set; }
 
-    [MaxLength(255)]
+    [MaxLength(21)]
     [ForeignKey("Owner")]
     public string? OwnerId { get; set; }
     public virtual User? Owner { get; set; }
