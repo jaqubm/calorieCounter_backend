@@ -541,3 +541,5 @@ $RECYCLE.BIN/
 .idea
 
 appsettings.Development.json
+
+Migrations/

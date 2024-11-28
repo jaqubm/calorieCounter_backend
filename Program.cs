@@ -106,6 +106,7 @@ builder.Services
 // Adding scoped connection between Repositories Interfaces and Repositories Classes
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserEntryRepository, UserEntryRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 
