@@ -49,7 +49,7 @@ public class UserEntriesController(IUserEntryRepository userEntryRepository, IPr
 
         if (string.IsNullOrEmpty(userEntryCreatorDto.EntryType))
             return BadRequest("EntryType is required and must be either 'Product' or 'Recipe'.");
-        if (string.IsNullOrEmpty(userEntryCreatorDto.Id))
+        if (string.IsNullOrEmpty(userEntryCreatorDto.EntryId))
             return BadRequest("Id is required.");
 
         string? productId = null;
@@ -57,13 +57,13 @@ public class UserEntriesController(IUserEntryRepository userEntryRepository, IPr
 
         if (userEntryCreatorDto.EntryType == "Product")
         {
-            productId = userEntryCreatorDto.Id;
+            productId = userEntryCreatorDto.EntryId;
             var productDb = await productRepository.GetProductByIdAsync(productId);
             if (productDb is null) return NotFound("Product not found.");
         }
         else if (userEntryCreatorDto.EntryType == "Recipe")
         {
-            recipeId = userEntryCreatorDto.Id;
+            recipeId = userEntryCreatorDto.EntryId;
             var recipeDb = await recipeRepository.GetRecipeByIdAsync(recipeId);
             if (recipeDb is null) return NotFound("Recipe not found.");
         }
