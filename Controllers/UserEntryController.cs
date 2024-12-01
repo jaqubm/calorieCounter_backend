@@ -13,13 +13,6 @@ namespace calorieCounter_backend.Controllers;
 [Route("[controller]")]
 public class UserEntriesController(IUserEntryRepository userEntryRepository, IProductRepository productRepository, IRecipeRepository recipeRepository) : ControllerBase
 {
-    private readonly Mapper _mapper = new(new MapperConfiguration(c =>
-    {
-        c.CreateMap<UserEntry, UserEntryDto>()
-            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product!.Name))
-            .ForMember(dest => dest.RecipeName, opt => opt.MapFrom(src => src.Recipe!.Name));
-    }));
-
     [HttpGet("Get")]
     public async Task<ActionResult<List<UserEntryDto>>> GetUserEntries([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
     {
@@ -29,7 +22,21 @@ public class UserEntriesController(IUserEntryRepository userEntryRepository, IPr
 
         var filteredEntries = userEntriesDb
             .Where(entry => entry.Date >= startDate && entry.Date <= endDate)
-            .Select(entry => _mapper.Map<UserEntryDto>(entry))
+            .Select(entry =>
+            {
+                var entryDto = new UserEntryDto
+                {
+                    Id = entry.Id,
+                    EntryType = entry.EntryType,
+                    EntryId = entry.EntryType == "Product" ? entry.ProductId! : entry.RecipeId!,
+                    EntryName = entry.EntryType == "Product" ? entry.Product?.Name : entry.Recipe?.Name,
+                    Date = entry.Date,
+                    MealType = entry.MealType,
+                    Weight = entry.Weight
+                };
+
+                return entryDto;
+            })
             .ToList();
 
         return Ok(filteredEntries);
@@ -40,25 +47,29 @@ public class UserEntriesController(IUserEntryRepository userEntryRepository, IPr
     {
         var userId = await AuthHelper.GetUserIdFromGoogleJwtTokenAsync(HttpContext);
 
-        if (userEntryCreatorDto.EntryType == "Product" && string.IsNullOrEmpty(userEntryCreatorDto.ProductId))
-            return BadRequest("ProductId is required for Product entries.");
-        if (userEntryCreatorDto.EntryType == "Recipe" && string.IsNullOrEmpty(userEntryCreatorDto.RecipeId))
-            return BadRequest("RecipeId is required for Recipe entries.");
+        if (string.IsNullOrEmpty(userEntryCreatorDto.EntryType))
+            return BadRequest("EntryType is required and must be either 'Product' or 'Recipe'.");
+        if (string.IsNullOrEmpty(userEntryCreatorDto.EntryId))
+            return BadRequest("Id is required.");
 
         string? productId = null;
         string? recipeId = null;
 
         if (userEntryCreatorDto.EntryType == "Product")
         {
-            productId = userEntryCreatorDto.ProductId;
+            productId = userEntryCreatorDto.EntryId;
             var productDb = await productRepository.GetProductByIdAsync(productId);
             if (productDb is null) return NotFound("Product not found.");
         }
         else if (userEntryCreatorDto.EntryType == "Recipe")
         {
-            recipeId = userEntryCreatorDto.RecipeId;
+            recipeId = userEntryCreatorDto.EntryId;
             var recipeDb = await recipeRepository.GetRecipeByIdAsync(recipeId);
             if (recipeDb is null) return NotFound("Recipe not found.");
+        }
+        else
+        {
+            return BadRequest("Invalid EntryType. Must be 'Product' or 'Recipe'.");
         }
 
         var userEntry = new UserEntry(
@@ -75,6 +86,7 @@ public class UserEntriesController(IUserEntryRepository userEntryRepository, IPr
 
         return await userEntryRepository.SaveChangesAsync() ? Ok(userEntry.Id) : Problem("Failed to add user entry.");
     }
+
 
     [HttpDelete("Delete/{entryId}")]
     public async Task<ActionResult> DeleteUserEntry([FromRoute] string entryId)
